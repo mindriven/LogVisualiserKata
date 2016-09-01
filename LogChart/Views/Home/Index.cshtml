@@ -1,0 +1,89 @@
+﻿@model LogChart.Models.ChartDrawingInfo
+@{
+    ViewBag.Title = "Log Visualizer";
+}
+
+<div class="jumbotron" id="chart-container">
+    <div id="chart-canvas">
+        <div id="x-axis"></div>
+        <div id="x-axis-arrow"></div>
+        <div id="x-axis-label">Time</div>
+        <div id="y-axis"></div>
+        <div id="y-axis-arrow"></div>
+        <div id="y-axis-label">Numer of people</div>
+    </div>
+</div>
+@section scripts
+    {
+    <script src="http://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
+    <script type="text/javascript">
+        var data = @Html.Raw(Json.Encode(Model.Calls));
+        var points =  @Html.Raw(Json.Encode(Model.Points));
+        $(function(){
+            var canvas = $("#chart-canvas");
+            var yAxisHeight = $("#y-axis").height()-20;//looks better with margin
+            var heightsOfAllBars = $.map(data, function(el, index) { return el.Height; });
+            var maxBarHeight = Math.max.apply(null, heightsOfAllBars);
+            var yAxisPointsHeight = yAxisHeight/maxBarHeight;
+            
+            function insertPointsOnYAxis(howMany, pointHeight)
+            {
+                for(var i=0;i<=howMany;i++)
+                {
+                    var el = $('<div id="number-of-people+'+i+'" class="number-of-people"></div>');
+                    var position = i*pointHeight-1;
+                    el.css("bottom", position);
+                    el.attr("title", i);
+                    canvas.append(el);
+                    if(i!=0)
+                    {
+                        var guideline = $('<div class="guideline"></div>');
+                        guideline.css("bottom", position);
+                        canvas.append(guideline);
+                    }
+                }
+            }
+
+            function insertPointsOnXAxis(index, point)
+            {
+                var el = $('<div id="point-in-time+'+point.Label+'" class="point-in-time"></div>');
+                el.css("left", point.DisplacementFromLeft+"%");
+                el.attr("title", point.Label);
+                canvas.append(el);
+            }
+
+            function insertMarkerToCanvas(index, dataPoint)
+            {
+                var wrap = $('<div id="'+dataPoint.CallId+'-wrap" class="wrap"></div>');
+                var height = dataPoint.Height*yAxisPointsHeight;
+                wrap.css({"height": height,
+                    "left" : dataPoint.DisplacementFromLeft+"%",
+                    "width" : dataPoint.TotalWidth+"%"
+                });
+                wrap.attr("title", dataPoint.ToolTip);
+
+                var ringing = $('<div id="'+dataPoint.CallId+'-ringing" class="ringing"></div>');
+                ringing.css({"height": height,
+                    "left" : dataPoint.DisplacementFromLeft+"%",
+                    "width" : dataPoint.RingingWidth+"%",
+                    "background-color": dataPoint.TotalWidth==dataPoint.RingingWidth?"rgba(255,0,0,0.5)":"rgba(255,255,0,0.5)"
+                });
+
+                var talk = $('<div id="'+dataPoint.CallId+'-talk" class="talk"></div>');
+                talk.css({"height": height,
+                    "left" : (dataPoint.DisplacementFromLeft + dataPoint.RingingWidth)+"%",
+                    "width" : (dataPoint.TotalWidth-dataPoint.RingingWidth)+"%"
+                });
+
+                canvas.append(wrap);
+                canvas.append(ringing);
+                canvas.append(talk);
+            }
+
+            insertPointsOnYAxis(maxBarHeight, yAxisPointsHeight);
+            $.each(points, insertPointsOnXAxis);
+            $.each(data, insertMarkerToCanvas);
+            $(document).tooltip({track: true});
+        });
+    </script>
+}
