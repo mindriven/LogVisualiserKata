@@ -130,3 +130,7 @@ textarea {
     min-height: 300px;
     position: relative;
 }
+
+.chart-tooltip{
+    background:#fff;
+}

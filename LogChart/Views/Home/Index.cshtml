@@ -83,7 +83,7 @@
             insertPointsOnYAxis(maxBarHeight, yAxisPointsHeight);
             $.each(points, insertPointsOnXAxis);
             $.each(data, insertMarkerToCanvas);
-            $(document).tooltip({track: true});
+            $(document).tooltip({track: true, tooltipClass:"chart-tooltip"});
         });
     </script>
 }
